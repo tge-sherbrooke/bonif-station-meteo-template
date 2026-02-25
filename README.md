@@ -1,46 +1,54 @@
-# Station meteo - Code de base
+# Station météo - Code de base
 
-Station meteo basique utilisant un capteur AHT20 sur Raspberry Pi 5.
+Station météo basique utilisant un capteur AHT20 sur Raspberry Pi.
+
+## Prérequis
+
+Installer `uv` (gestionnaire de paquets Python) :
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+```
 
 ## Installation
 
-1. Cloner ce depot
-2. Installer les dependances avec `uv` :
+1. Cloner ce dépôt
+2. Installer les dépendances avec `uv` :
    ```bash
    uv sync
    ```
 
 ## Utilisation
 
-Lancer la station meteo :
+Lancer la station météo :
 ```bash
 uv run main.py
 ```
 
-## Materiel requis
+## Matériel requis
 
-- Raspberry Pi 5 avec Raspberry Pi OS Lite
-- Capteur AHT20 (temperature et humidite)
-- Cable STEMMA QT pour connexion I2C
+- Raspberry Pi avec Raspberry Pi OS Lite
+- Capteur AHT20 (température et humidité)
+- Câble STEMMA QT pour connexion I²C
 
-## Configuration I2C
+## Configuration I²C
 
-S'assurer que I2C est active :
+S'assurer que I²C est activé :
 ```bash
 sudo raspi-config nonint do_i2c 0
 ```
 
-Verifier la detection du capteur (adresse 0x38) :
+Vérifier la détection du capteur (adresse 0x38) :
 ```bash
-i2cdetect -y 1
+sudo i2cdetect -y 1
 ```
 
-## Fonctionnalites
+## Fonctionnalités
 
-- Lecture de la temperature (C)
-- Lecture de l'humidite relative (%)
+- Lecture de la température (°C)
+- Lecture de l'humidité relative (%)
 - Affichage console
 
-## Ameliorations possibles
+## Améliorations possibles
 
-Ce code est volontairement minimal. Consulter les consignes fournies par votre enseignant pour la liste des ameliorations a implementer.
+Ce code est volontairement minimal. Consulter les consignes fournies par votre enseignant pour la liste des améliorations à implémenter.

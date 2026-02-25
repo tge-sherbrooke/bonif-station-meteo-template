@@ -1,12 +1,13 @@
 [project]
 name = "station-meteo-base"
 version = "0.1.0"
-description = "Station meteo basique avec capteur AHT20 - Code de base pour BONIF"
+description = "Station météo basique avec capteur AHT20 - Code de base pour BONIF"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "adafruit-circuitpython-ahtx0>=1.0.0",
     "adafruit-blinka>=8.0.0",
+    "RPi.GPIO>=0.7.0",
 ]
 
 [project.optional-dependencies]

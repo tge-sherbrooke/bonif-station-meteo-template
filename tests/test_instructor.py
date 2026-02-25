@@ -70,7 +70,7 @@ def _find_python_files(root):
     result = []
     for f in root.rglob("*.py"):
         parts = f.relative_to(root).parts
-        if not any(p.startswith('.') or p == '__pycache__' for p in parts):
+        if not any(p.startswith('.') or p in ('__pycache__', 'ressources') for p in parts):
             result.append(f)
     return result
 
@@ -546,7 +546,7 @@ def test_code_modularization():
 
     # Check for new directories (utils/, config/, data/, lib/, etc.)
     # Exclude standard dirs that exist in base: .github, sensors, tests, data
-    base_dirs = {".github", "sensors", "tests", "data", "__pycache__", ".venv", ".git"}
+    base_dirs = {".github", "sensors", "tests", "data", "__pycache__", ".venv", ".git", "ressources"}
     new_dirs = []
     for item in REPO_ROOT.iterdir():
         if item.is_dir() and item.name not in base_dirs and not item.name.startswith("."):

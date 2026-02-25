@@ -132,8 +132,8 @@ jobs:
         run: |
           # Re-run pytest with machine-readable output to capture counts
           RESULT=$(pytest tests/test_instructor.py -v --tb=no 2>&1 || true)
-          PASSED=$(echo "$RESULT" | grep -c "PASSED" || echo "0")
-          FAILED=$(echo "$RESULT" | grep -c "FAILED" || echo "0")
+          PASSED=$(echo "$RESULT" | grep -c "PASSED" || true)
+          FAILED=$(echo "$RESULT" | grep -c "FAILED" || true)
           TOTAL=$((PASSED + FAILED))
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
