@@ -49,6 +49,24 @@ sudo i2cdetect -y 1
 - Lecture de l'humidité relative (%)
 - Affichage console
 
+## Capteurs additionnels
+
+Des capteurs optionnels sont disponibles sur demande pour enrichir votre station :
+
+| Capteur | Fonction | Adresse I²C |
+|---------|----------|-------------|
+| HTS221 | Température/humidité (validation croisée) | 0x5F |
+| AS7341 | Spectromètre 11 canaux (analyse météo) | 0x39 |
+| VCNL4200 | Lumière ambiante et proximité | 0x51 |
+| Neoslider | Potentiomètre + 4 LEDs NeoPixel RGB | 0x30 |
+
+Pour installer les dépendances des capteurs additionnels :
+```bash
+uv sync --extra sensors
+```
+
+Consultez les exemples dans `ressources/snippets/` pour l'intégration de chaque capteur.
+
 ## Améliorations possibles
 
 Ce code est volontairement minimal. Consulter les consignes fournies par votre enseignant pour la liste des améliorations à implémenter.
