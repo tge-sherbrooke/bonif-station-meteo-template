@@ -1,0 +1,39 @@
+[project]
+name = "station-meteo-base"
+version = "0.1.0"
+description = "Station meteo basique avec capteur AHT20 - Code de base pour BONIF"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "adafruit-circuitpython-ahtx0>=1.0.0",
+    "adafruit-blinka>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+]
+sensors = [
+    "adafruit-circuitpython-hts221>=1.0.0",
+    "adafruit-circuitpython-as7341>=1.0.0",
+    "paho-mqtt>=1.6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = []
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]

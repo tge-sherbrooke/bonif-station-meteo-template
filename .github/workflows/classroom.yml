@@ -1,0 +1,193 @@
+name: BONIF - Autograding
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  autograding:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pytest
+        run: pip install -q pytest
+
+      # =========================================
+      # GIT METRICS (IND-00SX-C, 30%)
+      # =========================================
+
+      - name: "Git Metrics: Commit Count"
+        id: git-commits
+        continue-on-error: true
+        run: |
+          echo "=============================================="
+          echo "GIT METRICS: Commit Count"
+          echo "=============================================="
+          echo ""
+          TOTAL=$(git rev-list --count HEAD)
+          # Subtract 1 for the template commit
+          STUDENT_COMMITS=$((TOTAL - 1))
+          THRESHOLD=10
+          echo "Total commits: $TOTAL"
+          echo "Student commits (total - 1 template): $STUDENT_COMMITS"
+          echo ""
+          if [ "$STUDENT_COMMITS" -ge "$THRESHOLD" ]; then
+            echo "PASS: Commit count ($STUDENT_COMMITS >= $THRESHOLD)"
+            echo "Bon travail! Vous avez fait des commits reguliers."
+          else
+            echo "FAIL: Commit count ($STUDENT_COMMITS < $THRESHOLD)"
+            echo ""
+            echo "Suggestion: Faites des commits plus frequents."
+            echo "  Chaque amelioration devrait etre un commit separe."
+            echo "  Visez au moins $THRESHOLD commits au total."
+            exit 1
+          fi
+
+      - name: "Git Metrics: Branch Usage"
+        id: git-branches
+        continue-on-error: true
+        run: |
+          echo "=============================================="
+          echo "GIT METRICS: Branch Usage"
+          echo "=============================================="
+          echo ""
+          BRANCHES=$(git branch -r | grep -v HEAD | wc -l | tr -d ' ')
+          THRESHOLD=2
+          echo "Remote branches found: $BRANCHES"
+          git branch -r | grep -v HEAD || true
+          echo ""
+          if [ "$BRANCHES" -ge "$THRESHOLD" ]; then
+            echo "PASS: Branch usage ($BRANCHES >= $THRESHOLD)"
+            echo "Bon travail! Vous utilisez des branches pour organiser votre travail."
+          else
+            echo "FAIL: Branch usage ($BRANCHES < $THRESHOLD)"
+            echo ""
+            echo "Suggestion: Utilisez des branches pour chaque amelioration."
+            echo "  git checkout -b amelioration/gestion-erreurs"
+            echo "  # ... travail ..."
+            echo "  git checkout main"
+            echo "  git merge amelioration/gestion-erreurs"
+            exit 1
+          fi
+
+      - name: "Git Metrics: PR/Merge Evidence"
+        id: git-merges
+        continue-on-error: true
+        run: |
+          echo "=============================================="
+          echo "GIT METRICS: PR/Merge Evidence"
+          echo "=============================================="
+          echo ""
+          MERGES=$(git log --merges --oneline | wc -l | tr -d ' ')
+          BRANCHES=$(git branch -r | grep -v HEAD | wc -l | tr -d ' ')
+          echo "Merge commits found: $MERGES"
+          echo "Remote branches found: $BRANCHES"
+          echo ""
+          if [ "$MERGES" -ge 1 ]; then
+            echo "PASS: Merge evidence ($MERGES merge commit(s) found)"
+            echo "Bon travail! Vous integrez vos branches avec des merges."
+          elif [ "$BRANCHES" -ge 3 ]; then
+            echo "PASS: Branch evidence ($BRANCHES branches >= 3, accepted as alternative)"
+            echo "Plusieurs branches detectees. Pensez a les merger dans main."
+          else
+            echo "FAIL: No merge evidence ($MERGES merges, $BRANCHES branches)"
+            echo ""
+            echo "Suggestion: Mergez vos branches dans main:"
+            echo "  git checkout main"
+            echo "  git merge amelioration/ma-branche"
+            echo ""
+            echo "  Ou creez une Pull Request sur GitHub pour merger."
+            exit 1
+          fi
+
+      # =========================================
+      # IMPLEMENTATION TESTS (IND-00SX-D, 20%)
+      # =========================================
+
+      - name: "Implementation: Hidden Test Suite"
+        id: impl-tests
+        continue-on-error: true
+        run: |
+          echo "=============================================="
+          echo "IMPLEMENTATION: Hidden Test Suite"
+          echo "=============================================="
+          echo ""
+          echo "Analyse structurelle du code (AST/regex)."
+          echo "Aucun code etudiant n'est execute."
+          echo ""
+          pytest tests/test_instructor.py -v --tb=short
+
+      - name: Parse Test Results
+        id: test-results
+        if: always()
+        run: |
+          # Re-run pytest with machine-readable output to capture counts
+          RESULT=$(pytest tests/test_instructor.py -v --tb=no 2>&1 || true)
+          PASSED=$(echo "$RESULT" | grep -c "PASSED" || echo "0")
+          FAILED=$(echo "$RESULT" | grep -c "FAILED" || echo "0")
+          TOTAL=$((PASSED + FAILED))
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+
+      # =========================================
+      # Summary
+      # =========================================
+      - name: Results Summary
+        if: always()
+        run: |
+          echo ""
+          echo "=============================================="
+          echo "       BONIF - RESULTS SUMMARY                "
+          echo "=============================================="
+          echo ""
+          echo "  --- Git Metrics (IND-00SX-C, 30%) ---"
+          echo "  Commit Count:     ${{ steps.git-commits.outcome }}"
+          echo "  Branch Usage:     ${{ steps.git-branches.outcome }}"
+          echo "  Merge Evidence:   ${{ steps.git-merges.outcome }}"
+          echo ""
+          echo "  --- Implementation (IND-00SX-D, 20%) ---"
+          echo "  Hidden Tests:     ${{ steps.test-results.outputs.passed }}/${{ steps.test-results.outputs.total }} passed"
+          echo ""
+          echo "=============================================="
+          echo ""
+          echo "  NOTE: Ces resultats informent la validation orale."
+          echo "  L'instructeur utilise ces donnees pour guider"
+          echo "  la discussion avec chaque etudiant."
+          echo ""
+          echo "  Les messages d'erreur indiquent:"
+          echo "    - Ce qui etait attendu (Expected)"
+          echo "    - Ce qui a ete trouve (Actual)"
+          echo "    - Une suggestion pour corriger (Suggestion)"
+          echo ""
+          echo "=============================================="
+
+      - name: Generate Step Summary
+        if: always()
+        run: |
+          echo "## BONIF - Autograding Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Git Metrics (IND-00SX-C, 30%)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit Count (>= 10) | ${{ steps.git-commits.outcome == 'success' && 'PASS' || 'FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch Usage (>= 2) | ${{ steps.git-branches.outcome == 'success' && 'PASS' || 'FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Merge Evidence (>= 1) | ${{ steps.git-merges.outcome == 'success' && 'PASS' || 'FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Implementation Tests (IND-00SX-D, 20%)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Hidden Instructor Tests | ${{ steps.test-results.outputs.passed }}/${{ steps.test-results.outputs.total }} passed |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Ces resultats informent la validation orale avec l'instructeur." >> $GITHUB_STEP_SUMMARY
